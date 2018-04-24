@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/basicauthh.iml" filepath="$PROJECT_DIR$/basicauthh.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/basicauthh_main.iml" filepath="$PROJECT_DIR$/.idea/modules/basicauthh_main.iml" group="basicauthh" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/basicauthh_test.iml" filepath="$PROJECT_DIR$/.idea/modules/basicauthh_test.iml" group="basicauthh" />
+    </modules>
+  </component>
+</project>
