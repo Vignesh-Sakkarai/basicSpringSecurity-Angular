@@ -1,0 +1,83 @@
+---
+resource_types:
+- name: merge-request
+  type: docker-image
+  source:
+    repository: mastertinner/gitlab-merge-request-resource
+
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest
+
+resources:
+- name: ((service_name))
+  type: git
+  source:
+    uri: ((git_repo_uri))
+    branch: ((git_branch))
+    private_key: ((git_private_key))
+
+- name: ((merge_request_resource))
+  type: merge-request
+  source:
+    uri: ((git_repo_uri))
+    private_token: ((merge_request_token))
+    private_key: ((git_private_key))
+
+- name: slack-alert
+  type: slack-notification
+  source:
+    url: {{slack_url}}
+
+jobs:
+  - name: build-((service_name))
+    public: true
+    plan:
+      - get: ((service_name))
+        trigger: true
+      - task: build-((service_name))
+        file: ((service_name))/ci/tasks/build.yml
+    on_failure:
+      put: slack-alert
+      params:
+        channel: '#concourse-ci'
+        text: |
+          BUILD FAILURE!!!!
+          Check it out at:
+          {{concourse_url}}/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+          or at:
+          {{concourse_url}}/builds/$BUILD_ID
+    on_success:
+      put: slack-alert
+      params:
+        channel: '#concourse-ci'
+        text: |
+          BUILD SUCCESS!!!
+          Check it out at:
+          {{concourse_url}}/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+          or at:
+          {{concourse_url}}/builds/$BUILD_ID
+  # merge-request job
+  - name: build-MR-((service_name))
+    plan:
+    - get: ((service_name))
+      resource: ((merge_request_resource))
+      trigger: true
+    - put: ((merge_request_resource))
+      params:
+        repository: ((service_name))
+        status: running
+    - task: build-((service_name))
+      file: ((service_name))/ci/tasks/build.yml
+    on_failure:
+      put: ((merge_request_resource))
+      params:
+        repository: ((service_name))
+        status: failed
+    on_success:
+      put: ((merge_request_resource))
+      params:
+        repository: ((service_name))
+        status: success

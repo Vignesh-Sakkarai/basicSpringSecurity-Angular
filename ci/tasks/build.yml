@@ -1,0 +1,17 @@
+---
+platform: linux
+
+inputs:
+- name: cms-service
+
+image_resource:
+  type: docker-image
+  source: {repository: openjdk, tag: 8-slim}
+
+run:
+  path: cms-service/ci/tasks/build.sh
+
+caches:
+  - path: .gradle/
+  - path: .m2/
+  - path: .ivy/
